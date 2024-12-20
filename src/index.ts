@@ -1,47 +1,16 @@
-import express, { NextFunction, Request, Response } from "express";
-import helmet from "helmet";
-import morgan from "morgan";
-import cors from "cors";
-import rateLimit from "express-rate-limit";
+import dotenv from "dotenv";
+import { createServer } from "./frameworks/server/server";
+import connectDB from "./frameworks/database/mongodb/connectDB";
 
-const app = express();
-const PORT = 3000;
+dotenv.config();
 
-app.use(helmet());
+const PORT: number = parseInt(process.env.PORT || "3000", 10);
 
-// CORS
-app.use(cors());
+const app = createServer();
 
-// Rate Limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-});
-app.use(limiter);
-
-// Logging
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-} else {
-  app.use(morgan("combined"));
-}
-
-// Body Parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// Routes
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello, TypeScript with Express!");
-});
-
-// Error Handling
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong!" });
-});
-
-// Start Server
 app.listen(PORT, () => {
+  const dbName: string =
+    process.env.DBCONNECTION || "mongodb://localhost:27017/url-shortener";
+  connectDB(dbName);
   console.log(`Server is running at http://localhost:${PORT}`);
 });
